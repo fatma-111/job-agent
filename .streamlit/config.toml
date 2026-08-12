@@ -1,1 +1,21 @@
+# Forces the design system in streamlit_app.py's CSS to actually apply.
+# Without this, Streamlit auto-detects the browser/OS theme preference and
+# renders native widgets (inputs, selects, sliders) in dark mode regardless
+# of the app's own CSS — producing exactly the light-page/dark-widget clash
+# reported. base="light" plus matching colors below makes native widgets
+# consistent with the custom palette instead of fighting it.
+[theme]
+base = "light"
+primaryColor = "#0F6FDE"
+backgroundColor = "#EEF2F6"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#101828"
+font = "sans serif"
 
+[server]
+headless = true
+enableCORS = true
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false
