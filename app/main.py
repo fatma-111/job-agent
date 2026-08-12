@@ -253,7 +253,19 @@ async def start_search(
     if crud.get_cv(db, payload.cv_id) is None:
         raise HTTPException(status_code=404, detail=f"CV '{payload.cv_id}' not found. Upload a CV first.")
 
+    # Guard against duplicate-click / rapid-rerun firing several overlapping
+    # searches against the same 5 sites within seconds — that pattern is
+    # exactly what gets an IP rate-limited or blocked by the job boards.
+    existing = await task_store.get_active_for_cv(payload.cv_id)
+    if existing is not None:
+        return SearchTaskResponse(
+            task_id=existing.id,
+            status=existing.status,
+            message="A search for this CV is already running — reusing it instead of starting another.",
+        )
+
     task = await task_store.create({"cv_id": payload.cv_id})
+    await task_store.mark_active(payload.cv_id, task.id)
     background.add_task(
         _run_search_task, task.id, payload.cv_id, payload.filters.model_dump(mode="json")
     )
